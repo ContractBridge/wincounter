@@ -4,12 +4,24 @@
 pub struct Wins(Vec<Count>);
 
 impl Wins {
-    pub fn extend(&mut self, other: &Wins) {
-        self.0.extend(other.get())
+    pub fn add_win(&mut self, count: Count) {
+        self.0.push(count);
     }
 
-    pub fn push(&mut self, count: Count) {
-        self.0.push(count);
+    pub fn add_win_first(&mut self) {
+        self.0.push(Win::FIRST);
+    }
+
+    pub fn add_win_second(&mut self) {
+        self.0.push(Win::SECOND);
+    }
+
+    pub fn add_win_third(&mut self) {
+        self.0.push(Win::THIRD);
+    }
+
+    pub fn extend(&mut self, other: &Wins) {
+        self.0.extend(other.get());
     }
 
     #[must_use]
@@ -25,6 +37,11 @@ impl Wins {
     #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    #[must_use]
+    pub fn wins_for(&self, result: Count) -> usize {
+        self.0.iter().filter(|r| r.win_for(result)).count()
     }
 }
 
@@ -53,23 +70,33 @@ mod tests__wins {
     }
 
     #[test]
-    fn push() {
+    fn get() {
+        let v = vec![Win::FIRST, Win::FIRST, Win::SECOND, Win::FIRST];
+
+        let wins = Wins::from(v.clone());
+
+        assert_eq!(&v, wins.get())
+    }
+
+    #[test]
+    fn add_win() {
         let mut counter = Wins::default();
 
-        counter.push(Win::FIRST);
-        counter.push(Win::SECOND);
-        counter.push(Win::FIRST);
-        counter.push(Win::SECOND);
-        counter.push(Win::FIRST & Win::SECOND);
+        counter.add_win_first();
+        counter.add_win_second();
+        counter.add_win_first();
+        counter.add_win_third();
+        counter.add_win(Win::FIRST | Win::SECOND);
+        counter.add_win(Win::FIFTH);
 
-        assert_eq!(5, counter.get().len())
+        assert_eq!(6, counter.len())
     }
 
     #[test]
     fn is_empty() {
         let mut counter = Wins::default();
 
-        counter.push(Win::FIRST);
+        counter.add_win(Win::FIRST);
 
         assert!(!counter.is_empty());
         assert!(Wins::default().is_empty());
@@ -79,17 +106,79 @@ mod tests__wins {
     fn len() {
         let mut counter = Wins::default();
 
-        counter.push(Win::FIRST);
-        counter.push(Win::FIRST);
-        counter.push(Win::FIRST);
-        counter.push(Win::FIRST);
+        counter.add_win(Win::FIRST);
+        counter.add_win(Win::FIRST);
+        counter.add_win(Win::FIRST);
+        counter.add_win(Win::FIRST);
 
         assert_eq!(4, counter.len());
         assert_eq!(0, Wins::default().len());
     }
+
+    #[test]
+    fn wins_for() {
+        let mut counter = Wins::default();
+
+        counter.add_win_first();
+        counter.add_win_second();
+        counter.add_win_first();
+        counter.add_win_third();
+        counter.add_win_third();
+        counter.add_win_third();
+        counter.add_win(Win::FORTH);
+
+        assert_eq!(2, counter.wins_for(Win::FIRST));
+        assert_eq!(1, counter.wins_for(Win::SECOND));
+        assert_eq!(3, counter.wins_for(Win::THIRD));
+        assert_eq!(1, counter.wins_for(Win::FORTH));
+    }
 }
 
 pub type Count = u8;
+
+pub trait Result {
+    #[must_use]
+    fn is_tie(&self) -> bool;
+
+    #[must_use]
+    fn win_for(&self, count: Count) -> bool;
+}
+
+impl Result for Count {
+    fn is_tie(&self) -> bool {
+        self.count_ones() > 1
+    }
+
+    fn win_for(&self, count: Count) -> bool {
+        self & count == count
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod tests__result {
+    use super::*;
+
+    #[test]
+    fn is_tie() {
+        let r = Win::FIRST | Win::SECOND;
+
+        assert_eq!(2, r.count_ones());
+        assert!(r.is_tie());
+    }
+
+    #[test]
+    fn win_for() {
+        let tie = Win::FIRST | Win::THIRD;
+
+        assert!(Win::FIRST.win_for(Win::FIRST));
+        assert!(tie.win_for(Win::FIRST));
+        assert!(tie.win_for(Win::THIRD));
+        assert!(!tie.win_for(Win::SECOND));
+        assert!(!Win::FIRST.win_for(Win::SECOND));
+        assert!(!Win::FIRST.win_for(Win::THIRD));
+    }
+}
 
 pub struct Win;
 
