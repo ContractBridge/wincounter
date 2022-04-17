@@ -40,8 +40,9 @@ impl Wins {
     }
 
     #[must_use]
-    pub fn wins_for(&self, result: Count) -> usize {
-        self.0.iter().filter(|r| r.win_for(result)).count()
+    pub fn wins_for(&self, result: Count) -> (usize, usize) {
+        let wins: Vec<Count> = self.0.clone().into_iter().filter(|r| r.win_for(result)).collect();
+        (wins.len(), wins.into_iter().filter(Result::is_tie).count())
     }
 }
 
@@ -120,17 +121,16 @@ mod tests__wins {
         let mut counter = Wins::default();
 
         counter.add_win_first();
-        counter.add_win_second();
-        counter.add_win_first();
+        counter.add_win(Win::FIRST | Win::SECOND);
         counter.add_win_third();
         counter.add_win_third();
         counter.add_win_third();
         counter.add_win(Win::FORTH);
 
-        assert_eq!(2, counter.wins_for(Win::FIRST));
-        assert_eq!(1, counter.wins_for(Win::SECOND));
-        assert_eq!(3, counter.wins_for(Win::THIRD));
-        assert_eq!(1, counter.wins_for(Win::FORTH));
+        assert_eq!((2, 1), counter.wins_for(Win::FIRST));
+        assert_eq!((1, 1), counter.wins_for(Win::SECOND));
+        assert_eq!((3, 0), counter.wins_for(Win::THIRD));
+        assert_eq!((1, 0), counter.wins_for(Win::FORTH));
     }
 }
 
