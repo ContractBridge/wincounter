@@ -4,8 +4,8 @@
 pub struct Wins(Vec<Count>);
 
 impl Wins {
-    pub fn append(&mut self, other: &mut Vec<Count>) {
-        self.0.append(other)
+    pub fn extend(&mut self, other: &Wins) {
+        self.0.extend(other.get())
     }
 
     pub fn push(&mut self, count: Count) {
@@ -28,10 +28,29 @@ impl Wins {
     }
 }
 
+impl From<Vec<Count>> for Wins {
+    fn from(counts: Vec<Count>) -> Self {
+        Wins(counts)
+    }
+}
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod tests__wins {
     use super::*;
+
+    #[test]
+    fn extend() {
+        let mut wins = Wins::default();
+        let more_wins = Wins::from(vec![Win::FIRST, Win::FIRST, Win::SECOND]);
+        let even_more_wins = Wins::from(vec![Win::FIRST, Win::SECOND, Win::SECOND]);
+
+        wins.extend(&more_wins);
+        wins.extend(&even_more_wins);
+
+        assert!(!wins.is_empty());
+        assert_eq!(more_wins.len() + even_more_wins.len(), wins.len());
+    }
 
     #[test]
     fn push() {
