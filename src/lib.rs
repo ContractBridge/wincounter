@@ -1,5 +1,7 @@
 #![warn(clippy::pedantic)]
 
+pub mod result;
+
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Wins(Vec<Count>);
 
@@ -48,6 +50,17 @@ impl Wins {
             .filter(|r| r.win_for(result))
             .collect();
         (wins.len(), wins.into_iter().filter(Result::is_tie).count())
+    }
+
+    /// Forgiving percentage calculator. It will return zero if you try
+    /// to divide by zero.
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
+    pub fn percent(number: usize, total: usize) -> f32 {
+        match total {
+            0 => 0_f32,
+            _ => ((number as f32 * 100.0) / total as f32) as f32,
+        }
     }
 }
 
@@ -137,9 +150,30 @@ mod tests__wins {
         assert_eq!((3, 0), counter.wins_for(Win::THIRD));
         assert_eq!((1, 0), counter.wins_for(Win::FORTH));
     }
+
+    #[test]
+    fn percent() {
+        let percentage = Wins::percent(48, 2_598_960);
+
+        assert_eq!("0.00185%", format!("{:.5}%", percentage));
+    }
+
+    #[test]
+    fn percent__zero_numerator() {
+        let percentage = Wins::percent(0, 2_598_960);
+
+        assert_eq!("0.00000%", format!("{:.5}%", percentage));
+    }
+
+    #[test]
+    fn percent__zero_denominator() {
+        let percentage = Wins::percent(48, 0);
+
+        assert_eq!("0.00000%", format!("{:.5}%", percentage));
+    }
 }
 
-pub type Count = u8;
+pub type Count = u16;
 
 pub trait Result {
     #[must_use]
@@ -196,4 +230,55 @@ impl Win {
     pub const SIXTH: Count = 0b0010_0000;
     pub const SEVENTH: Count = 0b0100_0000;
     pub const EIGHT: Count = 0b1000_0000;
+    pub const NINTH: Count = 0b1_0000_0000;
+    pub const TENTH: Count = 0b10_0000_0000;
+    pub const ELEVENTH: Count = 0b100_0000_0000;
+    pub const TWELFTH: Count = 0b1000_0000_0000;
+    pub const THIRTEENTH: Count = 0b1_0000_0000_0000;
+    pub const FOURTEENTH: Count = 0b10_0000_0000_0000;
+    pub const FIFTEENTH: Count = 0b100_0000_0000_0000;
+    pub const SIXTEENTH: Count = 0b1000_0000_0000_0000;
 }
+
+//region utility functions
+
+/// Forgiving percentage calculator. It will return zero if you try
+/// to divide by zero.
+#[must_use]
+#[allow(clippy::cast_precision_loss)]
+pub fn calculate_percentage(number: usize, total: usize) -> f32 {
+    match total {
+        0 => 0_f32,
+        _ => ((number as f32 * 100.0) / total as f32) as f32,
+    }
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod tests__utilities {
+    use super::*;
+
+    #[test]
+    fn percent() {
+        let percentage = calculate_percentage(48, 2_598_960);
+
+        assert_eq!("0.00185%", format!("{:.5}%", percentage));
+        assert_eq!("0.00000%", format!("{:.5}%", calculate_percentage(0, 0)));
+    }
+
+    #[test]
+    fn percent__zero_numerator() {
+        let percentage = calculate_percentage(0, 2_598_960);
+
+        assert_eq!("0.00000%", format!("{:.5}%", percentage));
+    }
+
+    #[test]
+    fn percent__zero_denominator() {
+        let percentage = calculate_percentage(48, 0);
+
+        assert_eq!("0.00000%", format!("{:.5}%", percentage));
+    }
+}
+
+//endregion
