@@ -1,5 +1,7 @@
 #![warn(clippy::pedantic)]
 
+use crate::result::HeadsUp;
+
 pub mod result;
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -8,6 +10,13 @@ pub struct Wins(Vec<Count>);
 impl Wins {
     pub fn add_win(&mut self, count: Count) {
         self.0.push(count);
+    }
+
+    /// Adds a count x number of times. Primarily used for testing.
+    pub fn add_x(&mut self, count: Count, x: usize) {
+        for _ in 0..x {
+            self.0.push(count);
+        }
     }
 
     pub fn add_win_first(&mut self) {
@@ -61,6 +70,13 @@ impl Wins {
             0 => 0_f32,
             _ => ((number as f32 * 100.0) / total as f32) as f32,
         }
+    }
+
+    #[must_use]
+    pub fn results_heads_up(&self) -> HeadsUp {
+        let (first, ties) = self.wins_for(Win::FIRST);
+        let (second, _) = self.wins_for(Win::SECOND);
+        HeadsUp::new(first - ties, second - ties, ties)
     }
 }
 
@@ -170,6 +186,21 @@ mod tests__wins {
         let percentage = Wins::percent(48, 0);
 
         assert_eq!("0.00000%", format!("{:.5}%", percentage));
+    }
+
+    #[test]
+    fn results_heads_up() {
+        let mut counter = Wins::default();
+        counter.add_x(Win::FIRST, 1_365_284);
+        counter.add_x(Win::SECOND, 314_904);
+        counter.add_x(Win::FIRST | Win::SECOND, 32_116);
+
+        let hup = counter.results_heads_up();
+
+        assert_eq!(79.73374, hup.percentage_first());
+        assert_eq!(18.39066, hup.percentage_second());
+        assert_eq!(1.8756015, hup.percentage_ties());
+        assert_eq!(100.0, hup.percentage_total());
     }
 }
 

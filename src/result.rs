@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::calculate_percentage;
+use serde::{Deserialize, Serialize};
 
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
@@ -93,5 +93,17 @@ mod tests__result {
         let hup = HeadsUp::new(1365284, 314904, 32116);
 
         assert_eq!(1_712_304, hup.total())
+    }
+
+    #[test]
+    fn remote_test() {
+        // stats from https://tools.timodenk.com/poker-odds-pre-flop
+        let hup = HeadsUp::new(1364802, 314904, 32598);
+
+        assert_eq!(1_712_304, hup.total());
+        assert_eq!(79.70558, hup.percentage_first());
+        assert_eq!(18.39066, hup.percentage_second());
+        assert_eq!(1.9037508, hup.percentage_ties());
+        assert_eq!(100.0, hup.percentage_total());
     }
 }
