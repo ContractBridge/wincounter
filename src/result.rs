@@ -1,5 +1,6 @@
 use crate::calculate_percentage;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
@@ -44,6 +45,21 @@ impl HeadsUp {
     #[must_use]
     pub fn total(&self) -> usize {
         self.first_wins + self.second_wins + self.ties
+    }
+}
+
+impl fmt::Display for HeadsUp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:.2}% ({}), {:.2}% ({}), {:.2}% ({})",
+            self.percentage_first(),
+            self.first_wins,
+            self.percentage_second(),
+            self.second_wins,
+            self.percentage_ties(),
+            self.ties
+        )
     }
 }
 
@@ -105,5 +121,10 @@ mod tests__result {
         assert_eq!(18.39066, hup.percentage_second());
         assert_eq!(1.9037508, hup.percentage_ties());
         assert_eq!(100.0, hup.percentage_total());
+    }
+
+    #[test]
+    fn display() {
+        assert_eq!("79.73% (1365284), 18.39% (314904), 1.88% (32116)", the_hand().to_string());
     }
 }
