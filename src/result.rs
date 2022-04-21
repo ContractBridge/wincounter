@@ -2,6 +2,22 @@ use crate::calculate_percentage;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+/// Struct to make it easy to parse Wins into results for one on one contests where
+/// it is possible to tie.
+/// 6♠ 6♥ 5♦ 5♣, 79.73% (1365284), 18.39% (314904), 1.88% (32116)
+///
+/// For example, in [The Hand](https://www.youtube.com/watch?v=vjM60lqRhPg) between
+/// Gus Hansen and Daniel Negreanu, before the flop, given every possible combination
+/// of cards, Daniel wins 1365284 of the time, Gus wins 314904 times, and they tie
+/// 32116 times.
+///
+/// ```
+/// use wincounter::result::HeadsUp;
+///
+/// let the_hand = HeadsUp::new(1365284, 314904, 32116);
+/// assert_eq!("79.73% (1365284), 18.39% (314904), 1.88% (32116)", the_hand.to_string());
+/// ```
+///
 #[derive(
     Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize,
 )]
@@ -125,6 +141,9 @@ mod tests__result {
 
     #[test]
     fn display() {
-        assert_eq!("79.73% (1365284), 18.39% (314904), 1.88% (32116)", the_hand().to_string());
+        assert_eq!(
+            "79.73% (1365284), 18.39% (314904), 1.88% (32116)",
+            the_hand().to_string()
+        );
     }
 }
