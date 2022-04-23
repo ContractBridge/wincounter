@@ -147,6 +147,9 @@ mod tests__result {
 
     #[test]
     fn display() {
-        assert_eq!("79.73% (1365284), 18.39% (314904), 1.88% (32116)", the_hand().to_string());
+        assert_eq!(
+            "79.73% (1365284), 18.39% (314904), 1.88% (32116)",
+            the_hand().to_string()
+        );
     }
 }
