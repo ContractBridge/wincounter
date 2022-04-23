@@ -43,8 +43,18 @@ impl HeadsUp {
     }
 
     #[must_use]
+    pub fn percentage_first_cumulative(&self) -> f32 {
+        calculate_percentage(self.first_wins + self.ties, self.total())
+    }
+
+    #[must_use]
     pub fn percentage_second(&self) -> f32 {
         calculate_percentage(self.second_wins, self.total())
+    }
+
+    #[must_use]
+    pub fn percentage_second_cumulative(&self) -> f32 {
+        calculate_percentage(self.second_wins + self.ties, self.total())
     }
 
     #[must_use]
@@ -103,9 +113,21 @@ mod tests__result {
     }
 
     #[test]
+    fn percentage_first_cumulative() {
+        assert_eq!(81.60934, the_hand().percentage_first_cumulative());
+        assert_eq!(60.0, simple().percentage_first_cumulative());
+    }
+
+    #[test]
     fn percentage_second() {
         assert_eq!(18.39066, the_hand().percentage_second());
         assert_eq!(40.0, simple().percentage_second());
+    }
+
+    #[test]
+    fn percentage_second_cumulative() {
+        assert_eq!(20.266262, the_hand().percentage_second_cumulative());
+        assert_eq!(60.0, simple().percentage_second_cumulative());
     }
 
     #[test]
